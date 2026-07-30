@@ -48,7 +48,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-        <meta name="google-site-verification" content="fvQU6cMJI_xoFJWScg9ADLqUnp3UlcSWWShcveuuI7A" />
+        <meta name="google-site-verification" content="PBpzWJoF9d-2ISJncRfqsv6rePQZ6AWZH5TMT40rrg4" />
         <JsonLd />
       </head>
       <body className="font-body antialiased">
