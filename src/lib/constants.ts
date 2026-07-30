@@ -13,3 +13,5 @@ export const SITE_KEYWORDS = [
   'budget management',
   'spending analysis',
 ];
+
+export const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_ID || 'G-58042CRJS7';

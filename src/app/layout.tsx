@@ -3,8 +3,9 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
-import { SITE_NAME, SITE_DESCRIPTION, SITE_URL, SITE_KEYWORDS } from '@/lib/constants';
+import { SITE_NAME, SITE_DESCRIPTION, SITE_URL, SITE_KEYWORDS, GA_MEASUREMENT_ID } from '@/lib/constants';
 import { JsonLd } from '@/components/JsonLd';
+import { GoogleAnalytics } from '@/components/GoogleAnalytics';
 
 export const metadata: Metadata = {
   title: {
@@ -47,6 +48,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+        <meta name="google-site-verification" content="fvQU6cMJI_xoFJWScg9ADLqUnp3UlcSWWShcveuuI7A" />
         <JsonLd />
       </head>
       <body className="font-body antialiased">
@@ -56,6 +58,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          <GoogleAnalytics />
           <FirebaseClientProvider>
             {children}
           </FirebaseClientProvider>
