@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import {
     Card,
     CardContent,
@@ -17,6 +18,11 @@ import {
     SheetTrigger,
 } from "@/components/ui/sheet";
 import AddBudgetForm from "@/components/AddBudgetForm";
+
+export const metadata: Metadata = {
+  title: "Budgets",
+  description: "Set and track your monthly spending budgets with FinanceAI.",
+};
 
 export default function BudgetsPage() {
     return (

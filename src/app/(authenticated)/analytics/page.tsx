@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import {
     Card,
     CardContent,
@@ -7,6 +8,11 @@ import {
   } from "@/components/ui/card";
   import MonthlySpendingChart from "@/components/charts/MonthlySpendingChart";
   import CumulativeSavingsChart from "@/components/charts/CumulativeSavingsChart";
+
+export const metadata: Metadata = {
+  title: "Analytics",
+  description: "Dive deep into your financial data with interactive charts and analytics.",
+};
 
 export default function AnalyticsPage() {
     return (

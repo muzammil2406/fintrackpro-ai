@@ -14,16 +14,17 @@ import { useCollection } from './firestore/use-collection';
 import { useDoc } from './firestore/use-doc';
 import { useUser } from './auth/use-user';
 
-// The full Firebase SDK
-export * from 'firebase/app';
-export * from 'firebase/auth';
-export * from 'firebase/firestore';
+export type { User } from 'firebase/auth';
 
 export function initializeFirebase(): {
-  firebaseApp: FirebaseApp;
-  auth: Auth;
-  firestore: Firestore;
+  firebaseApp: FirebaseApp | null;
+  auth: Auth | null;
+  firestore: Firestore | null;
 } {
+  if (!firebaseConfig) {
+    return { firebaseApp: null, auth: null, firestore: null };
+  }
+
   const apps = getApps();
   const firebaseApp =
     apps.length === 0 ? initializeApp(firebaseConfig) : apps[0];

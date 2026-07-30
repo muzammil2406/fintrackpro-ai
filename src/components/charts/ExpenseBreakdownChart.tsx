@@ -6,7 +6,6 @@ import type { PieSectorDataItem } from "recharts/types/polar/Pie"
 
 import {
   ChartContainer,
-  ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
 import { categories, transactions } from "@/lib/data"
@@ -30,13 +29,13 @@ const expenseData = transactions
   }, [] as { name: string; value: number; fill: string }[]);
 
 
-const chartConfig = expenseData.reduce((acc, item) => {
+const chartConfig: Record<string, { label: string; color: string }> = expenseData.reduce<Record<string, { label: string; color: string }>>((acc, item) => {
     acc[item.name] = {
         label: item.name,
         color: item.fill,
     };
     return acc;
-}, {} as any);
+}, {});
 
 export default function ExpenseBreakdownChart() {
   const id = "pie-interactive"
@@ -63,7 +62,7 @@ export default function ExpenseBreakdownChart() {
           innerRadius={60}
           strokeWidth={5}
           activeIndex={active}
-          activeShape={(props) => (
+          activeShape={(props: PieSectorDataItem) => (
             <Sector
               {...props}
               outerRadius={props.outerRadius ? props.outerRadius + 8 : 0}

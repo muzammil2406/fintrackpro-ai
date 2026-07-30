@@ -5,6 +5,7 @@ import {
   Sidebar,
   SidebarInset,
 } from "@/components/ui/sidebar";
+import { MockAuthProvider } from "@/components/MockAuthProvider";
 
 export default function AuthenticatedLayout({
   children,
@@ -13,15 +14,17 @@ export default function AuthenticatedLayout({
 }) {
   return (
     <SidebarProvider>
-      <Sidebar>
-        <Nav />
-      </Sidebar>
-      <SidebarInset className="flex flex-col">
-        <Header />
-        <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
-            {children}
-        </main>
-      </SidebarInset>
+      <MockAuthProvider>
+        <Sidebar>
+          <Nav />
+        </Sidebar>
+        <SidebarInset className="flex flex-col">
+          <Header />
+          <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
+              {children}
+          </main>
+        </SidebarInset>
+      </MockAuthProvider>
     </SidebarProvider>
   );
 }

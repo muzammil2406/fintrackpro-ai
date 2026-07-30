@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,11 +7,15 @@ import { Label } from "@/components/ui/label";
 import { DollarSign } from "lucide-react";
 import { redirect } from "next/navigation";
 
+export const metadata: Metadata = {
+  title: "Login",
+  description: "Sign in to your FinanceAI account to manage your finances.",
+};
+
 export default function LoginPage() {
   
   async function login() {
     'use server'
-    // This is a mock login. In a real app, you'd handle authentication here.
     redirect('/dashboard')
   }
 

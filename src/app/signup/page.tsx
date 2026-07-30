@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -5,6 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DollarSign } from "lucide-react";
 import { redirect } from "next/navigation";
+
+export const metadata: Metadata = {
+  title: "Sign Up",
+  description: "Create a free FinanceAI account to track your income, expenses, and budgets.",
+};
 
 export default function SignupPage() {
   
