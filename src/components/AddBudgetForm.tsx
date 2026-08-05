@@ -20,30 +20,51 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { categories } from "@/lib/data"
+import { useCategories } from "@/lib/supabase/hooks"
+import { addBudget } from "@/lib/supabase/hooks"
 import { useToast } from "@/hooks/use-toast"
-import { SheetClose } from "./ui/sheet"
 
 const formSchema = z.object({
-  limit: z.coerce.number().min(1, "Budget limit must be greater than 0."),
+  budgetLimit: z.coerce.number().min(1, "Budget limit must be greater than 0."),
   category: z.string({ required_error: "Please select a category." }),
 })
 
-export default function AddBudgetForm() {
+interface AddBudgetFormProps {
+  onSuccess?: () => void;
+}
+
+export default function AddBudgetForm({ onSuccess }: AddBudgetFormProps) {
     const { toast } = useToast();
+    const { categories } = useCategories();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-        limit: 100,
+        budgetLimit: 100,
     },
   })
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values)
-    toast({
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    try {
+      const now = new Date();
+      await addBudget({
+        category: values.category,
+        budgetLimit: values.budgetLimit,
+        month: now.getMonth() + 1,
+        year: now.getFullYear(),
+      });
+      toast({
         title: "Budget Added",
-        description: `A budget for ${values.category} of $${values.limit} has been successfully added.`,
-      })
+        description: `A budget for ${values.category} of $${values.budgetLimit} has been successfully added.`,
+      });
+      form.reset();
+      onSuccess?.();
+    } catch (err: any) {
+      toast({
+        title: "Failed to add budget",
+        description: err.message ?? "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    }
   }
 
   const expenseCategories = categories.filter(c => c.type === 'expense');
@@ -76,21 +97,19 @@ export default function AddBudgetForm() {
 
         <FormField
           control={form.control}
-          name="limit"
+          name="budgetLimit"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Budget Limit</FormLabel>
               <FormControl>
-                <Input type="number" placeholder="100.00" {...field} />
+                <Input type="number" step="0.01" placeholder="100.00" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
         
-        <SheetClose asChild>
-          <Button type="submit" className="w-full">Add Budget</Button>
-        </SheetClose>
+        <Button type="submit" className="w-full">Add Budget</Button>
       </form>
     </Form>
   )

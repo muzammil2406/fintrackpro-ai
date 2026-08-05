@@ -32,6 +32,7 @@ import AddTransactionForm from "@/components/AddTransactionForm";
 
 export default function TransactionsPage() {
   const [filters, setFilters] = useState<{ types: ('income' | 'expense')[]; searchTerm: string }>({ types: ['income', 'expense'], searchTerm: '' });
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   const handleFilterChange = (type: 'income' | 'expense') => {
     setFilters(prev => {
@@ -93,7 +94,7 @@ export default function TransactionsPage() {
                 </DropdownMenuCheckboxItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Sheet>
+            <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
                 <SheetTrigger asChild>
                     <Button size="sm" className="h-10 gap-1">
                         <PlusCircle className="h-3.5 w-3.5" />
@@ -109,7 +110,7 @@ export default function TransactionsPage() {
                         Fill in the details of your income or expense.
                     </SheetDescription>
                     </SheetHeader>
-                    <AddTransactionForm />
+                    <AddTransactionForm onSuccess={() => setSheetOpen(false)} />
                 </SheetContent>
             </Sheet>
           </div>

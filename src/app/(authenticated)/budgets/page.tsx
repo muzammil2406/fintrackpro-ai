@@ -1,4 +1,6 @@
-import type { Metadata } from "next";
+"use client";
+
+import { useState } from "react";
 import {
     Card,
     CardContent,
@@ -19,12 +21,8 @@ import {
 } from "@/components/ui/sheet";
 import AddBudgetForm from "@/components/AddBudgetForm";
 
-export const metadata: Metadata = {
-  title: "Budgets",
-  description: "Set and track your monthly spending budgets with FinanceAI.",
-};
-
 export default function BudgetsPage() {
+    const [sheetOpen, setSheetOpen] = useState(false);
     return (
         <Card>
             <CardHeader>
@@ -35,7 +33,7 @@ export default function BudgetsPage() {
                             Set and track your monthly spending goals.
                         </CardDescription>
                     </div>
-                    <Sheet>
+                    <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
                         <SheetTrigger asChild>
                             <Button size="sm" className="gap-1">
                                 <PlusCircle className="h-3.5 w-3.5" />
@@ -51,7 +49,7 @@ export default function BudgetsPage() {
                                     Create a new budget to track your spending for a category.
                                 </SheetDescription>
                             </SheetHeader>
-                            <AddBudgetForm />
+                            <AddBudgetForm onSuccess={() => setSheetOpen(false)} />
                         </SheetContent>
                     </Sheet>
                 </div>

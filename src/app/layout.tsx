@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from '@/components/ThemeProvider';
-import { FirebaseClientProvider } from '@/firebase/client-provider';
 import { SITE_NAME, SITE_DESCRIPTION, SITE_URL, SITE_KEYWORDS, GA_MEASUREMENT_ID } from '@/lib/constants';
 import { JsonLd } from '@/components/JsonLd';
 import { GoogleAnalytics } from '@/components/GoogleAnalytics';
@@ -59,9 +58,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <GoogleAnalytics />
-          <FirebaseClientProvider>
-            {children}
-          </FirebaseClientProvider>
+          {children}
           <Toaster />
         </ThemeProvider>
       </body>

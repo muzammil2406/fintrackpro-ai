@@ -1,6 +1,6 @@
 'use client';
 
-import { useUser } from "@/firebase";
+import { useUser } from "@/lib/supabase/hooks";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -9,16 +9,16 @@ import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
 
 function App() {
-  const { user, initialising } = useUser();
+  const { user, loading } = useUser();
   const router = useRouter();
 
   useEffect(() => {
-    if (!initialising && user) {
+    if (!loading && user) {
       router.push('/dashboard');
     }
-  }, [user, initialising, router]);
+  }, [user, loading, router]);
 
-  if (initialising || user) {
+  if (loading || user) {
      return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="w-full max-w-5xl mx-auto p-6 space-y-6">

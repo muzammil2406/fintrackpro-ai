@@ -7,7 +7,7 @@ export type Transaction = {
   description: string;
   date: string; // ISO 8601 string
   paymentMethod: string;
-  receipt?: string; // URL to receipt image in Firebase Storage
+  receipt?: string; // URL to receipt image
   createdAt: string; // ISO 8601 string
 };
 
@@ -15,7 +15,7 @@ export type Budget = {
   id: string;
   userId: string;
   category: string;
-  limit: number;
+  budgetLimit: number;
   spent: number;
   month: number; // 1-12
   year: number;
@@ -45,8 +45,9 @@ export type Insight = {
 };
 
 export type UserProfile = {
-  name: string;
+  id: string;
   email: string;
+  name: string;
   currency: string;
   monthlyIncome: number;
   createdAt: string;

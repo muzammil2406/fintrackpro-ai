@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Card,
   CardContent,
@@ -6,9 +8,16 @@ import {
 } from "@/components/ui/card";
 import { ArrowDown, ArrowUp, DollarSign, Target } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
-import { transactions, budgets } from "@/lib/data";
+import { useTransactions, useBudgets, useProfile } from "@/lib/supabase/hooks";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function SummaryCards() {
+  const { transactions, loading } = useTransactions();
+  const { budgets } = useBudgets();
+  const { profile } = useProfile();
+
+  const currency = profile?.currency ?? "USD";
+
   const now = new Date();
   const currentMonth = now.getMonth();
   const currentYear = now.getFullYear();
@@ -28,14 +37,14 @@ export default function SummaryCards() {
 
   const netSavings = totalIncome - totalExpenses;
 
-  const totalBudget = budgets.reduce((acc, b) => acc + b.limit, 0);
+  const totalBudget = budgets.reduce((acc, b) => acc + b.budgetLimit, 0);
   const totalSpent = budgets.reduce((acc, b) => acc + b.spent, 0);
   const budgetUtilization = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
-  
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
-      currency: "USD",
+      currency,
     }).format(amount);
   };
 
@@ -44,13 +53,13 @@ export default function SummaryCards() {
       title: "Total Income",
       amount: formatCurrency(totalIncome),
       icon: <ArrowUp className="w-5 h-5 text-green-500" />,
-      change: "+2.5% this month",
+      change: "This month",
     },
     {
       title: "Total Expenses",
       amount: formatCurrency(totalExpenses),
       icon: <ArrowDown className="w-5 h-5 text-red-500" />,
-      change: "+5.1% this month",
+      change: "This month",
     },
     {
       title: "Net Savings",
@@ -59,6 +68,16 @@ export default function SummaryCards() {
       change: netSavings >= 0 ? "In savings" : "In deficit",
     },
   ];
+
+  if (loading) {
+    return (
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Skeleton key={i} className="h-28 rounded-lg" />
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">

@@ -8,42 +8,60 @@ import {
   ChartContainer,
   ChartTooltipContent,
 } from "@/components/ui/chart"
-import { categories, transactions } from "@/lib/data"
-import type { Category } from "@/types"
-
-const categoryMap = categories.reduce((acc, cat) => {
-    acc[cat.name] = cat;
-    return acc;
-}, {} as Record<string, Category>);
-
-const expenseData = transactions
-  .filter(t => t.type === 'expense')
-  .reduce((acc, t) => {
-    const existing = acc.find(item => item.name === t.category);
-    if (existing) {
-      existing.value += t.amount;
-    } else {
-      acc.push({ name: t.category, value: t.amount, fill: categoryMap[t.category]?.color || '#8884d8' });
-    }
-    return acc;
-  }, [] as { name: string; value: number; fill: string }[]);
-
-
-const chartConfig: Record<string, { label: string; color: string }> = expenseData.reduce<Record<string, { label: string; color: string }>>((acc, item) => {
-    acc[item.name] = {
-        label: item.name,
-        color: item.fill,
-    };
-    return acc;
-}, {});
+import { useTransactions, useCategories } from "@/lib/supabase/hooks"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export default function ExpenseBreakdownChart() {
   const id = "pie-interactive"
+  const { transactions, loading } = useTransactions();
+  const { categories } = useCategories();
   const [active, setActive] = React.useState(0);
+
+  const categoryMap = React.useMemo(() => {
+    return categories.reduce((acc, cat) => {
+      acc[cat.name] = cat;
+      return acc;
+    }, {} as Record<string, { color: string }>);
+  }, [categories]);
+
+  const expenseData = React.useMemo(() => {
+    const now = new Date();
+    return transactions
+      .filter(t => t.type === 'expense' && new Date(t.date).getMonth() === now.getMonth() && new Date(t.date).getFullYear() === now.getFullYear())
+      .reduce((acc, t) => {
+        const existing = acc.find(item => item.name === t.category);
+        if (existing) {
+          existing.value += t.amount;
+        } else {
+          acc.push({ name: t.category, value: t.amount, fill: categoryMap[t.category]?.color || '#8884d8' });
+        }
+        return acc;
+      }, [] as { name: string; value: number; fill: string }[]);
+  }, [transactions, categoryMap]);
+
+  const chartConfig = React.useMemo<Record<string, { label: string; color: string }>>(() => {
+    return expenseData.reduce<Record<string, { label: string; color: string }>>((acc, item) => {
+      acc[item.name] = {
+        label: item.name,
+        color: item.fill,
+      };
+      return acc;
+    }, {});
+  }, [expenseData]);
 
   const totalValue = React.useMemo(() => {
     return expenseData.reduce((acc, curr) => acc + curr.value, 0)
-  }, []);
+  }, [expenseData]);
+
+  if (loading) return <Skeleton className="mx-auto aspect-square h-[300px]" />;
+
+  if (expenseData.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-[300px] text-muted-foreground">
+        No expenses this month.
+      </div>
+    );
+  }
 
   return (
     <ChartContainer

@@ -13,7 +13,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, Utensils, Car, ShoppingBag, Landmark, Briefcase, FileText, Ticket, HeartPulse } from "lucide-react";
-import { transactions as mockTransactions } from "@/lib/data";
+import { useTransactions, useProfile } from "@/lib/supabase/hooks";
+import { deleteTransaction } from "@/lib/supabase/hooks";
 import { format } from "date-fns";
 import type { Transaction } from "@/types";
 import {
@@ -29,6 +30,7 @@ import {
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast";
 import EditTransactionForm from "./EditTransactionForm";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const iconMap: Record<string, React.ReactNode> = {
     'Food & Dining': <Utensils className="h-4 w-4 text-muted-foreground" />,
@@ -50,34 +52,42 @@ interface TransactionListProps {
 
 export default function TransactionList({ filters }: TransactionListProps) {
     const { toast } = useToast();
-    const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
+    const { transactions, loading, refresh } = useTransactions();
+    const { profile } = useProfile();
     const [transactionToDelete, setTransactionToDelete] = useState<Transaction | null>(null);
     const [transactionToEdit, setTransactionToEdit] = useState<Transaction | null>(null);
+
+    const currency = profile?.currency ?? "USD";
 
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat("en-US", {
             style: "currency",
-            currency: "USD",
+            currency,
         }).format(amount);
     };
     
-    const handleDelete = () => {
+    const handleDelete = async () => {
         if (!transactionToDelete) return;
-        
-        // In a real app, you would make an API call to delete the transaction
-        setTransactions(prev => prev.filter(t => t.id !== transactionToDelete.id));
-        
-        toast({
-            title: "Transaction Deleted",
-            description: `"${transactionToDelete.description}" has been deleted.`,
-        });
+        try {
+            await deleteTransaction(transactionToDelete.id);
+            toast({
+                title: "Transaction Deleted",
+                description: `"${transactionToDelete.description}" has been deleted.`,
+            });
+            refresh();
+        } catch (err: any) {
+            toast({
+                title: "Failed to delete transaction",
+                description: err.message ?? "Something went wrong.",
+                variant: "destructive",
+            });
+        }
         setTransactionToDelete(null);
     };
 
-    const handleEditSuccess = (updatedTransaction: Transaction) => {
-        // In a real app, you would make an API call to update the transaction
-        setTransactions(prev => prev.map(t => t.id === updatedTransaction.id ? updatedTransaction : t));
+    const handleEditSuccess = () => {
         setTransactionToEdit(null);
+        refresh();
     }
 
     const allTransactions = [...transactions]
@@ -88,8 +98,23 @@ export default function TransactionList({ filters }: TransactionListProps) {
             return typeMatch && searchMatch;
         });
 
+    if (loading) {
+        return (
+            <div className="space-y-3">
+                {Array.from({ length: 5 }).map((_, i) => (
+                    <Skeleton key={i} className="h-10 w-full" />
+                ))}
+            </div>
+        );
+    }
+
     return (
         <>
+            {allTransactions.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">
+                    No transactions found. Add your first one with the button above.
+                </p>
+            ) : (
             <Table>
                 <TableHeader>
                     <TableRow>
@@ -148,6 +173,7 @@ export default function TransactionList({ filters }: TransactionListProps) {
                     ))}
                 </TableBody>
             </Table>
+            )}
             <AlertDialog open={!!transactionToDelete} onOpenChange={() => setTransactionToDelete(null)}>
                 <AlertDialogContent>
                     <AlertDialogHeader>

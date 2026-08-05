@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import {
   Card,
@@ -15,26 +17,28 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { ArrowUpRight, Utensils, Car, ShoppingBag, Landmark, Briefcase } from "lucide-react";
+import { ArrowUpRight, Utensils, Car, ShoppingBag, Landmark, Briefcase, FileText, Ticket, HeartPulse } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { transactions, categories } from "@/lib/data";
+import { useTransactions, useCategories, useProfile } from "@/lib/supabase/hooks";
 import { format } from "date-fns";
-import type { Category } from "@/types";
-
-const categoryMap = categories.reduce((acc, cat) => {
-    acc[cat.name] = cat;
-    return acc;
-}, {} as Record<string, Category>);
+import { Skeleton } from "@/components/ui/skeleton";
 
 const iconMap: Record<string, React.ReactNode> = {
     'Food & Dining': <Utensils className="h-4 w-4" />,
     'Transportation': <Car className="h-4 w-4" />,
     'Shopping': <ShoppingBag className="h-4 w-4" />,
+    'Entertainment': <Ticket className="h-4 w-4" />,
+    'Bills & Utilities': <FileText className="h-4 w-4" />,
+    'Healthcare': <HeartPulse className="h-4 w-4" />,
     'Salary': <Landmark className="h-4 w-4" />,
     'Freelance': <Briefcase className="h-4 w-4" />,
 }
 
 export default function RecentTransactions() {
+  const { transactions, loading } = useTransactions();
+  const { profile } = useProfile();
+  const currency = profile?.currency ?? "USD";
+
   const recentTransactions = [...transactions]
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 5);
@@ -42,10 +46,25 @@ export default function RecentTransactions() {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
-      currency: "USD",
+      currency,
     }).format(amount);
   };
-    
+
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <Skeleton className="h-6 w-40" />
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} className="h-10 w-full" />
+          ))}
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center">
@@ -63,6 +82,11 @@ export default function RecentTransactions() {
         </Button>
       </CardHeader>
       <CardContent>
+        {recentTransactions.length === 0 ? (
+          <p className="text-center text-muted-foreground py-8">
+            No transactions yet. Add your first one to get started!
+          </p>
+        ) : (
         <Table>
           <TableHeader>
             <TableRow>
@@ -94,6 +118,7 @@ export default function RecentTransactions() {
             ))}
           </TableBody>
         </Table>
+        )}
       </CardContent>
     </Card>
   );

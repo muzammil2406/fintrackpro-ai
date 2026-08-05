@@ -1,22 +1,13 @@
 "use server";
 
 import { generatePersonalizedInsights, GeneratePersonalizedInsightsInput } from "@/ai/flows/generate-personalized-insights";
-import { transactions as mockTransactions } from "@/lib/data";
 
-export async function getAIInsights() {
+export async function getAIInsights(transactions: GeneratePersonalizedInsightsInput['transactions']) {
   try {
-    // In a real app, you would fetch the current user's transactions from the database
-    const transactionsForAI = mockTransactions.map(({ id, userId, createdAt, ...rest }) => ({
-        ...rest,
-        userId: "user1",
-        createdAt: new Date().toISOString(),
-        date: new Date(rest.date).toISOString(),
-    }));
-
     const input: GeneratePersonalizedInsightsInput = {
-      transactions: transactionsForAI,
+      transactions,
     };
-    
+
     const result = await generatePersonalizedInsights(input);
     return result;
   } catch (error) {

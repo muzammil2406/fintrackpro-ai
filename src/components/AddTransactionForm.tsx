@@ -21,14 +21,15 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { categories } from "@/lib/data"
+import { useCategories } from "@/lib/supabase/hooks"
+import { addTransaction } from "@/lib/supabase/hooks"
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"
 import { CalendarIcon } from "lucide-react"
 import { Calendar } from "@/components/ui/calendar"
 import { cn } from "@/lib/utils"
 import { format } from "date-fns"
 import { useToast } from "@/hooks/use-toast"
-import { SheetClose } from "./ui/sheet"
+import { Loader2 } from "lucide-react"
 
 const formSchema = z.object({
   type: z.enum(["income", "expense"], {
@@ -41,8 +42,13 @@ const formSchema = z.object({
   paymentMethod: z.string().min(2, "Payment method is required."),
 })
 
-export default function AddTransactionForm() {
+interface AddTransactionFormProps {
+  onSuccess?: () => void;
+}
+
+export default function AddTransactionForm({ onSuccess }: AddTransactionFormProps) {
     const { toast } = useToast();
+    const { categories } = useCategories();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -54,12 +60,29 @@ export default function AddTransactionForm() {
     },
   })
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values)
-    toast({
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    try {
+      await addTransaction({
+        type: values.type,
+        amount: values.amount,
+        description: values.description,
+        category: values.category,
+        date: values.date,
+        paymentMethod: values.paymentMethod,
+      });
+      toast({
         title: "Transaction Added",
         description: `${values.description} for $${values.amount} has been successfully added.`,
-      })
+      });
+      form.reset();
+      onSuccess?.();
+    } catch (err: any) {
+      toast({
+        title: "Failed to add transaction",
+        description: err.message ?? "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    }
   }
 
   const transactionType = form.watch("type");
@@ -107,7 +130,7 @@ export default function AddTransactionForm() {
             <FormItem>
               <FormLabel>Amount</FormLabel>
               <FormControl>
-                <Input type="number" placeholder="0.00" {...field} />
+                <Input type="number" step="0.01" placeholder="0.00" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -204,9 +227,9 @@ export default function AddTransactionForm() {
           )}
         />
 
-        <SheetClose asChild>
-          <Button type="submit" className="w-full">Add Transaction</Button>
-        </SheetClose>
+        <Button type="submit" className="w-full">
+          Add Transaction
+        </Button>
       </form>
     </Form>
   )

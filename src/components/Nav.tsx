@@ -19,8 +19,9 @@ import {
   LogOut,
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { userProfile } from "@/lib/data";
+import { usePathname, useRouter } from "next/navigation";
+import { useProfile } from "@/lib/supabase/hooks";
+import { supabase } from "@/lib/supabase/client";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: <LayoutDashboard /> },
@@ -32,6 +33,17 @@ const navItems = [
 
 export default function Nav() {
   const pathname = usePathname();
+  const router = useRouter();
+  const { profile } = useProfile();
+
+  const name = profile?.name ?? "User";
+  const email = profile?.email ?? "";
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push("/login");
+    router.refresh();
+  };
 
   return (
     <>
@@ -64,16 +76,16 @@ export default function Nav() {
       <SidebarFooter className="p-2 border-t border-sidebar-border">
          <div className="flex items-center gap-3">
              <Avatar>
-                 <AvatarImage src="https://picsum.photos/seed/1/40/40" alt="@shadcn" />
-                 <AvatarFallback>{userProfile.name.charAt(0)}</AvatarFallback>
+                 <AvatarImage src="" alt={name} />
+                 <AvatarFallback>{name.charAt(0)}</AvatarFallback>
              </Avatar>
              <div className="flex flex-col overflow-hidden">
-                 <span className="font-medium truncate">{userProfile.name}</span>
-                 <span className="text-xs text-sidebar-foreground/70 truncate">{userProfile.email}</span>
+                 <span className="font-medium truncate">{name}</span>
+                 <span className="text-xs text-sidebar-foreground/70 truncate">{email}</span>
              </div>
-             <Link href="/login" className="ml-auto">
+             <button onClick={handleLogout} className="ml-auto p-1 rounded-md hover:bg-sidebar-accent" aria-label="Logout">
                 <LogOut className="w-5 h-5 text-sidebar-foreground/70 hover:text-sidebar-foreground" />
-             </Link>
+             </button>
          </div>
       </SidebarFooter>
     </>

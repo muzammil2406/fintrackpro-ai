@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { BrainCircuit, Lightbulb, AlertTriangle, Loader2 } from "lucide-react";
 import { getAIInsights } from "@/app/actions";
+import { useTransactions } from "@/lib/supabase/hooks";
 import type { GeneratePersonalizedInsightsOutput } from "@/ai/flows/generate-personalized-insights";
 
 type Insight = GeneratePersonalizedInsightsOutput['insights'][0];
@@ -27,13 +28,29 @@ export default function InsightsPanel() {
   const [insights, setInsights] = useState<Insight[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { transactions } = useTransactions();
 
   const handleGenerateInsights = async () => {
+    if (transactions.length === 0) {
+      setError("Add some transactions first so the AI has data to analyze.");
+      return;
+    }
     setLoading(true);
     setError(null);
     setInsights([]);
     try {
-      const result = await getAIInsights();
+      const transactionsForAI = transactions.map((t) => ({
+        userId: t.userId,
+        type: t.type,
+        amount: t.amount,
+        category: t.category,
+        description: t.description,
+        date: new Date(t.date).toISOString(),
+        paymentMethod: t.paymentMethod,
+        receipt: t.receipt,
+        createdAt: t.createdAt,
+      }));
+      const result = await getAIInsights(transactionsForAI);
       if ('error' in result) {
         setError(result.error);
       } else if (result && result.insights) {

@@ -5,15 +5,9 @@ import {
   ChartContainer,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-
-const chartData = [
-  { month: "Jan", income: 1860, expense: 800 },
-  { month: "Feb", income: 3050, expense: 1980 },
-  { month: "Mar", income: 2370, expense: 1200 },
-  { month: "Apr", income: 2780, expense: 2900 },
-  { month: "May", income: 1890, expense: 1800 },
-  { month: "Jun", income: 2390, expense: 1800 },
-];
+import { useTransactions } from "@/lib/supabase/hooks";
+import { format } from "date-fns";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const chartConfig = {
   income: {
@@ -26,7 +20,33 @@ const chartConfig = {
   },
 };
 
+function lastSixMonths() {
+  const months: { key: string; label: string }[] = [];
+  const now = new Date();
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push({ key: `${d.getFullYear()}-${d.getMonth()}`, label: format(d, "MMM") });
+  }
+  return months;
+}
+
 export default function IncomeExpenseChart() {
+  const { transactions, loading } = useTransactions();
+
+  const chartData = lastSixMonths().map((m) => {
+    const monthTxs = transactions.filter((t) => {
+      const d = new Date(t.date);
+      return `${d.getFullYear()}-${d.getMonth()}` === m.key;
+    });
+    return {
+      month: m.label,
+      income: Math.round(monthTxs.filter(t => t.type === 'income').reduce((a, t) => a + t.amount, 0)),
+      expense: Math.round(monthTxs.filter(t => t.type === 'expense').reduce((a, t) => a + t.amount, 0)),
+    };
+  });
+
+  if (loading) return <Skeleton className="h-[300px] w-full" />;
+
   return (
     <ChartContainer config={chartConfig} className="h-[300px] w-full">
       <ResponsiveContainer>

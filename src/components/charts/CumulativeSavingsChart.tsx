@@ -5,15 +5,9 @@ import {
   ChartContainer,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-
-const chartData = [
-  { month: "Jan", savings: 1050 },
-  { month: "Feb", savings: 2120 },
-  { month: "Mar", savings: 3290 },
-  { month: "Apr", savings: 3170 },
-  { month: "May", savings: 3260 },
-  { month: "Jun", savings: 3850 },
-];
+import { useTransactions } from "@/lib/supabase/hooks";
+import { format } from "date-fns";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const chartConfig = {
   savings: {
@@ -22,7 +16,35 @@ const chartConfig = {
   },
 };
 
+function lastSixMonths() {
+  const months: { key: string; label: string }[] = [];
+  const now = new Date();
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push({ key: `${d.getFullYear()}-${d.getMonth()}`, label: format(d, "MMM") });
+  }
+  return months;
+}
+
 export default function CumulativeSavingsChart() {
+  const { transactions, loading } = useTransactions();
+
+  const chartData = (() => {
+    let runningTotal = 0;
+    return lastSixMonths().map((m) => {
+      const monthTxs = transactions.filter((t) => {
+        const d = new Date(t.date);
+        return `${d.getFullYear()}-${d.getMonth()}` === m.key;
+      });
+      const income = monthTxs.filter(t => t.type === 'income').reduce((a, t) => a + t.amount, 0);
+      const expense = monthTxs.filter(t => t.type === 'expense').reduce((a, t) => a + t.amount, 0);
+      runningTotal += income - expense;
+      return { month: m.label, savings: Math.round(runningTotal) };
+    });
+  })();
+
+  if (loading) return <Skeleton className="h-[300px] w-full" />;
+
   return (
     <ChartContainer config={chartConfig} className="h-[300px] w-full">
       <ResponsiveContainer>

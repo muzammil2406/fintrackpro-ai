@@ -21,14 +21,14 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { categories } from "@/lib/data"
+import { useCategories } from "@/lib/supabase/hooks"
+import { updateTransaction } from "@/lib/supabase/hooks"
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"
 import { CalendarIcon } from "lucide-react"
 import { Calendar } from "@/components/ui/calendar"
 import { cn } from "@/lib/utils"
 import { format } from "date-fns"
 import { useToast } from "@/hooks/use-toast"
-import { SheetClose } from "./ui/sheet"
 import type { Transaction } from "@/types"
 
 const formSchema = z.object({
@@ -49,6 +49,7 @@ interface EditTransactionFormProps {
 
 export default function EditTransactionForm({ transaction, onSuccess }: EditTransactionFormProps) {
   const { toast } = useToast();
+  const { categories } = useCategories();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -58,18 +59,33 @@ export default function EditTransactionForm({ transaction, onSuccess }: EditTran
     },
   })
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values)
-    const updatedTransaction = {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    try {
+      await updateTransaction(transaction.id, {
+        type: values.type,
+        amount: values.amount,
+        description: values.description,
+        category: values.category,
+        date: values.date,
+        paymentMethod: values.paymentMethod,
+      });
+      const updatedTransaction: Transaction = {
         ...transaction,
         ...values,
         date: values.date.toISOString(),
-    };
-    onSuccess(updatedTransaction);
-    toast({
+      };
+      onSuccess(updatedTransaction);
+      toast({
         title: "Transaction Updated",
         description: `"${values.description}" has been successfully updated.`,
-    })
+      });
+    } catch (err: any) {
+      toast({
+        title: "Failed to update transaction",
+        description: err.message ?? "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    }
   }
 
   const transactionType = form.watch("type");
@@ -117,7 +133,7 @@ export default function EditTransactionForm({ transaction, onSuccess }: EditTran
             <FormItem>
               <FormLabel>Amount</FormLabel>
               <FormControl>
-                <Input type="number" placeholder="0.00" {...field} />
+                <Input type="number" step="0.01" placeholder="0.00" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
