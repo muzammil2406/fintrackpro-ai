@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from './client';
+import { onDataChanged, notifyDataChanged } from './data-events';
 import { mapTransaction, mapBudget, mapCategory, mapProfile } from './mappers';
 import type { Transaction, Budget, Category, UserProfile } from '@/types';
 
@@ -61,6 +62,8 @@ export function useTransactions() {
 
   useEffect(() => {
     refresh();
+    const unsubscribe = onDataChanged(() => refresh());
+    return unsubscribe;
   }, [refresh]);
 
   return { transactions, loading, error, refresh };
@@ -93,6 +96,7 @@ export async function addTransaction(input: {
     .single();
 
   if (error) throw error;
+  notifyDataChanged();
   return mapTransaction(data);
 }
 
@@ -117,11 +121,13 @@ export async function updateTransaction(id: string, input: {
     .eq('id', id);
 
   if (error) throw error;
+  notifyDataChanged();
 }
 
 export async function deleteTransaction(id: string) {
   const { error } = await supabase.from('transactions').delete().eq('id', id);
   if (error) throw error;
+  notifyDataChanged();
 }
 
 // ---------- Budgets ----------
@@ -157,6 +163,8 @@ export function useBudgets() {
 
   useEffect(() => {
     refresh();
+    const unsubscribe = onDataChanged(() => refresh());
+    return unsubscribe;
   }, [refresh]);
 
   return { budgets, loading, error, refresh };
@@ -186,6 +194,7 @@ export async function addBudget(input: {
     .single();
 
   if (error) throw error;
+  notifyDataChanged();
   return mapBudget(data);
 }
 
@@ -254,6 +263,8 @@ export function useProfile() {
       }
     }
     load();
+    const unsubscribe = onDataChanged(() => load());
+    return unsubscribe;
   }, [user]);
 
   return { profile, loading };
@@ -273,4 +284,5 @@ export async function updateProfile(input: {
     .eq('id', user.user.id);
 
   if (error) throw error;
+  notifyDataChanged();
 }

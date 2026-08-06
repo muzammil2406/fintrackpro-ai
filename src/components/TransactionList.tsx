@@ -52,7 +52,7 @@ interface TransactionListProps {
 
 export default function TransactionList({ filters }: TransactionListProps) {
     const { toast } = useToast();
-    const { transactions, loading, refresh } = useTransactions();
+    const { transactions, loading } = useTransactions();
     const { profile } = useProfile();
     const [transactionToDelete, setTransactionToDelete] = useState<Transaction | null>(null);
     const [transactionToEdit, setTransactionToEdit] = useState<Transaction | null>(null);
@@ -74,7 +74,6 @@ export default function TransactionList({ filters }: TransactionListProps) {
                 title: "Transaction Deleted",
                 description: `"${transactionToDelete.description}" has been deleted.`,
             });
-            refresh();
         } catch (err: any) {
             toast({
                 title: "Failed to delete transaction",
@@ -87,7 +86,6 @@ export default function TransactionList({ filters }: TransactionListProps) {
 
     const handleEditSuccess = () => {
         setTransactionToEdit(null);
-        refresh();
     }
 
     const allTransactions = [...transactions]
