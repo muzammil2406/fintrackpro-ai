@@ -8,7 +8,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DollarSign, Loader2 } from "lucide-react";
-import { supabase } from "@/lib/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 export default function SignupForm() {
@@ -25,21 +24,25 @@ export default function SignupForm() {
     setLoading(true);
     try {
       const name = `${firstName} ${lastName}`.trim();
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { data: { name } },
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, name }),
       });
-      if (error) throw error;
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        throw new Error(data?.message ?? "Something went wrong. Please try again.");
+      }
 
-      if (data.session) {
-        toast({ title: "Account created!", description: "Welcome to FinanceAI." });
-        router.push("/dashboard");
-      } else {
+      if (data?.requiresConfirmation) {
         toast({
           title: "Check your email",
           description: "We've sent you a confirmation link to activate your account.",
         });
+      } else {
+        toast({ title: "Account created!", description: "Welcome to FinanceAI." });
+        router.push("/dashboard");
+        router.refresh();
       }
     } catch (err: any) {
       toast({

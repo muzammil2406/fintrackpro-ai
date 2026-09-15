@@ -21,7 +21,6 @@ import {
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useProfile } from "@/lib/supabase/hooks";
-import { supabase } from "@/lib/supabase/client";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: <LayoutDashboard /> },
@@ -40,7 +39,7 @@ export default function Nav() {
   const email = profile?.email ?? "";
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    await fetch("/api/auth/logout", { method: "POST" });
     router.push("/login");
     router.refresh();
   };

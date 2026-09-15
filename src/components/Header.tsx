@@ -22,7 +22,6 @@ import Link from "next/link";
 import { usePathname, useRouter } from 'next/navigation';
 import React from "react";
 import ThemeToggle from "./ThemeToggle";
-import { supabase } from "@/lib/supabase/client";
 
 export default function Header() {
     const pathname = usePathname();
@@ -32,7 +31,7 @@ export default function Header() {
     const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
     const handleLogout = async () => {
-        await supabase.auth.signOut();
+        await fetch("/api/auth/logout", { method: "POST" });
         router.push("/login");
         router.refresh();
     };
@@ -85,7 +84,7 @@ export default function Header() {
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild><Link href="/settings">Settings</Link></DropdownMenuItem>
-                <DropdownMenuItem>Support</DropdownMenuItem>
+                <DropdownMenuItem asChild><Link href="/support">Support</Link></DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onSelect={handleLogout}>Logout</DropdownMenuItem>
                 </DropdownMenuContent>
